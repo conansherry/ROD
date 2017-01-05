@@ -178,7 +178,7 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
 
 RODCluster::RODCluster()
 {
-    kNN = 4;
+    kNN = 1;
     aggression = 100;
 }
 
@@ -218,21 +218,21 @@ void RODCluster::update(const Elements & _src)
             Neighbors target = neighborhood[i];
 
             // should we insert the new neighbor into the current target's list?
-            if (target.size() < kNN || scores[i] > target.back().second) {
+            if (target.size() < 1 || scores[i] > target.back().second) {
                 // insert into the sorted nearest neighbor list
                 Neighbor temp(scores.size(), scores[i]);
                 Neighbors::iterator res = qLowerBoundHelper(target.begin(), target.end(), temp, compareNeighbors);
                 target.insert(res, temp);
 
-                if (target.size() > kNN)
-                    target.pop_back();
+                //if (target.size() > kNN)
+                //    target.pop_back();
 
                 neighborhood[i] = target;
             }
         }
 
         // add a new row, consisting of the top neighbors of the newest point
-        int actuallyKeep = std::min(kNN, (int)currentN.size());
+        int actuallyKeep = (int)(currentN.size() * 0.2);
         std::partial_sort(currentN.begin(), currentN.begin() + actuallyKeep, currentN.end(), compareNeighbors);
 
         Neighbors selected = Neighbors(currentN.begin(), std::next(currentN.begin(), actuallyKeep));//currentN.mid(0, actuallyKeep);
