@@ -178,16 +178,11 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
 
 RODCluster::RODCluster()
 {
-    aggression = 1000;
+    aggression = 1e10;
 }
 
 RODCluster::~RODCluster()
 {
-}
-
-void RODCluster::setParas(float _aggression)
-{
-    aggression = _aggression;
 }
 
 void RODCluster::update(const Elements & _src)

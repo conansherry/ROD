@@ -34,8 +34,6 @@ public:
     RODCluster();
     virtual ~RODCluster();
 
-    void setParas(float _aggression = 100.f);
-
     void update(const Elements &src);
 
     void identifyClusters(Elements& dst);
