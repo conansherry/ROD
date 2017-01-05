@@ -1,54 +1,65 @@
 #include <iostream>
 #include <fstream>
 #include "RODCluster.h"
+#include <hash_map>
+#include <set>
 
 int main(int argc, char* argv[])
 {
-    std::ifstream fin("tmpfile.txt");
-    readsense::Elements elements(674);
+    //std::ifstream fin("tmpfile.txt");
+    //readsense::Elements elements(674);
+    //for (int i = 0; i < elements.size(); i++)
+    //{
+    //    elements[i].id = i;
+    //    elements[i].feature.resize(768);
+    //    for (int j = 0; j < elements[i].feature.size(); j++)
+    //    {
+    //        fin >> elements[i].feature[j];
+    //    }
+    //}
+    //readsense::RODCluster rodcluster;
+    //rodcluster.update(elements);
+    //readsense::Elements dst;
+    //rodcluster.identifyClusters(dst);
+    //for (int i = 0; i < dst.size(); i++)
+    //{
+    //    std::cout << "id " << dst[i].id << " cluster_id " << dst[i].cluser_id << " coef " << dst[i].cluster_confidence << std::endl;
+    //}
+
+    std::ifstream fin("test_feature_phone_com(1).txt");
+    readsense::Elements elements(60);
     for (int i = 0; i < elements.size(); i++)
     {
+        std::string name;
+        fin >> name;
         elements[i].id = i;
-        elements[i].feature.resize(768);
-        for (int j = 0; j < elements[i].feature.size(); j++)
+        elements[i].id_name = name;
+        int x, y, w, h;
+        fin >> x >> y >> w >> h;
+        elements[i].feature.resize(256);
+        for (int j = 0; j < 256; j++)
         {
-            fin >> elements[i].feature[j];
+            float v;
+            fin >> v;
+            elements[i].feature[j] = v;
         }
     }
     readsense::RODCluster rodcluster;
     rodcluster.update(elements);
     readsense::Elements dst;
     rodcluster.identifyClusters(dst);
+    std::hash_map<int, std::set<std::string> > results;
     for (int i = 0; i < dst.size(); i++)
     {
-        std::cout << "id " << dst[i].id << " cluster_id " << dst[i].cluser_id << " coef " << dst[i].cluster_confidence << std::endl;
+        std::cout << "id_name " << dst[i].id_name << " cluster_id " << dst[i].cluser_id << " coef " << dst[i].cluster_confidence << std::endl;
+        results[dst[i].cluser_id].insert(dst[i].id_name);
     }
-    /*std::ifstream fin("D:/readsense/tmpFeatures.txt");
-    readsense::Elements elements;
-    while (true)
+    for (auto i : results)
     {
-        std::string filename;
-        fin >> filename;
-        if (filename.size() < 5)
-            break;
-        readsense::Feature feature(256);
-        for (int i = 0; i < 256; i++)
+        if (i.second.size() > 1)
         {
-            fin >> feature[i];
+            std::cout << "Error cluster_id = " << i.first << std::endl;
         }
-        readsense::Element element;
-        element.id_name = filename;
-        element.feature = feature;
-        elements.push_back(element);
     }
-    readsense::RODCluster rc;
-    rc.update(elements);
-    readsense::Elements dst;
-    rc.identifyClusters(dst);
-    std::ofstream fout("D:/readsense/output.txt");
-    for (int i = 0; i < dst.size(); i++)
-    {
-        fout << dst[i].id_name << " " << dst[i].cluser_id << " " << dst[i].cluster_confidence << std::endl;
-    }*/
     return 0;
 }

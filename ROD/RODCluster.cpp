@@ -143,8 +143,6 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
         for (int i = 0; i < neighborhood.size(); i++)
         {
             clusterIDLUT[i] = find(allClusterIDs.begin(), allClusterIDs.end(), nextClusterIDs[i]) - allClusterIDs.begin();
-            //if(pos >= allClustersIDs.size()) // check out of bounds
-            //clusterIDLUT[i] = allClusterIDs.indexOf(nextClusterIDs[i]);
         }
 
         Clusters newClusters(allClusterIDs.size());
@@ -154,18 +152,12 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
             int newID = clusterIDLUT[i];
             newClusters[newID].insert(newClusters[newID].end(), clusters[i].begin(), clusters[i].end());
             newNeighborhood[newID].insert(newNeighborhood[newID].end(), neighborhood[i].begin(), neighborhood[i].end());
-            //newClusters[newID].push_back(clusters[i]);
-            //newNeighborhood[newID].push_back(neighborhood[i]);
         }
 
         // Update indices and trim
         for (int i = 0; i<newNeighborhood.size(); i++) {
             Neighbors &neighbors = newNeighborhood[i];
             int size = std::min((int)neighbors.size(), cutoff);
-
-            //std::vector<Neighbor> vectorNeighbors(neighbors.begin(), neighbors.end());
-            //std::partial_sort(vectorNeighbors.begin(), vectorNeighbors.begin() + size, vectorNeighbors.end(), compareNeighbors);
-            //neighbors.assign(vectorNeighbors.begin(), vectorNeighbors.end());
 
             std::partial_sort(neighbors.begin(), neighbors.begin() + size, neighbors.end(), compareNeighbors);
 
@@ -186,20 +178,38 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
 
 RODCluster::RODCluster()
 {
-    kNN = 20;
-    aggression = 10;
+    kNN = 4;
+    aggression = 100;
 }
 
 RODCluster::~RODCluster()
 {
 }
 
-void RODCluster::update(const Elements & src)
+void RODCluster::setParas(int _kNN, float _aggression)
 {
+    kNN = _kNN;
+    aggression = _aggression;
+}
+
+void RODCluster::update(const Elements & _src)
+{
+    Elements src = _src;
+    for (Element &element : src)
+    {
+        double fNormFea = 0;
+        for (int i = 0; i < element.feature.size(); i++)
+        {
+            fNormFea += element.feature[i] * element.feature[i];
+        }
+        fNormFea = std::sqrtf(fNormFea);
+        for (int i = 0; i < element.feature.size(); i++)
+        {
+            element.feature[i] /= (fNormFea + 0.000001f);
+        }
+    }
     // update current graph
     for(const Element &t : src) {
-        //if (neighborhood.size() > 50)
-        //    continue;
         std::vector<float> scores = compare(templates, t);
         // attempt to udpate each existing point's (sorted) k-NN list with these results.
         Neighbors currentN;
@@ -223,11 +233,6 @@ void RODCluster::update(const Elements & src)
 
         // add a new row, consisting of the top neighbors of the newest point
         int actuallyKeep = std::min(kNN, (int)currentN.size());
-
-        //std::vector<Neighbor> vectorNeighbors(currentN.begin(), currentN.end());
-        //std::partial_sort(vectorNeighbors.begin(), vectorNeighbors.begin() + actuallyKeep, vectorNeighbors.end(), compareNeighbors);
-        //currentN.assign(vectorNeighbors.begin(), vectorNeighbors.end());
-
         std::partial_sort(currentN.begin(), currentN.begin() + actuallyKeep, currentN.end(), compareNeighbors);
 
         Neighbors selected = Neighbors(currentN.begin(), std::next(currentN.begin(), actuallyKeep));//currentN.mid(0, actuallyKeep);
