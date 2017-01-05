@@ -26,8 +26,8 @@ int main(int argc, char* argv[])
     //    std::cout << "id " << dst[i].id << " cluster_id " << dst[i].cluser_id << " coef " << dst[i].cluster_confidence << std::endl;
     //}
 
-    std::ifstream fin("test_feature_phone_com(1).txt");
-    readsense::Elements elements(60);
+    std::ifstream fin("test_feature_save_p2_gray.txt");
+    readsense::Elements elements(1827);
     for (int i = 0; i < elements.size(); i++)
     {
         std::string name;

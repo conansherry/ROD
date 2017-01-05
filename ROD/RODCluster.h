@@ -34,7 +34,7 @@ public:
     RODCluster();
     virtual ~RODCluster();
 
-    void setParas(int _kNN, float _aggression = 100.f);
+    void setParas(float _aggression = 100.f);
 
     void update(const Elements &src);
 

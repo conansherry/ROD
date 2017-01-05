@@ -163,7 +163,7 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
 
             for (int j = 0; j<size; j++)
                 (*std::next(neighbors.begin(), j)).first = clusterIDLUT[j];
-            neighbors = Neighbors(neighbors.begin(), std::next(neighbors.begin(), cutoff));
+            neighbors = Neighbors(neighbors.begin(), std::next(neighbors.begin(), size));
             //neighbors = neighbors.mid(0, cutoff);
         }
 
@@ -178,17 +178,15 @@ Clusters ClusterGraph(Neighborhood neighborhood, float aggressiveness)
 
 RODCluster::RODCluster()
 {
-    kNN = 1;
-    aggression = 100;
+    aggression = 1000;
 }
 
 RODCluster::~RODCluster()
 {
 }
 
-void RODCluster::setParas(int _kNN, float _aggression)
+void RODCluster::setParas(float _aggression)
 {
-    kNN = _kNN;
     aggression = _aggression;
 }
 
@@ -215,24 +213,25 @@ void RODCluster::update(const Elements & _src)
         Neighbors currentN;
         for (int i = 0; i < scores.size(); i++) {
             currentN.push_back(Neighbor(i, scores[i]));
-            Neighbors target = neighborhood[i];
+            Neighbors &target = neighborhood[i];
 
             // should we insert the new neighbor into the current target's list?
-            if (target.size() < 1 || scores[i] > target.back().second) {
+            //if (target.size() < 1 || scores[i] > std::max(0.8f, target.back().second)) {
+            if(target.size() == 0 && scores[i] > 0.75f || target.size() > 0 && scores[i] > std::max(0.75f, target.back().second)) {
                 // insert into the sorted nearest neighbor list
                 Neighbor temp(scores.size(), scores[i]);
                 Neighbors::iterator res = qLowerBoundHelper(target.begin(), target.end(), temp, compareNeighbors);
                 target.insert(res, temp);
 
-                //if (target.size() > kNN)
-                //    target.pop_back();
+                if (target.size() > 25)
+                    target.pop_back();
 
-                neighborhood[i] = target;
+                //neighborhood[i] = target;
             }
         }
 
         // add a new row, consisting of the top neighbors of the newest point
-        int actuallyKeep = (int)(currentN.size() * 0.2);
+        int actuallyKeep = std::min(25, (int)currentN.size());
         std::partial_sort(currentN.begin(), currentN.begin() + actuallyKeep, currentN.end(), compareNeighbors);
 
         Neighbors selected = Neighbors(currentN.begin(), std::next(currentN.begin(), actuallyKeep));//currentN.mid(0, actuallyKeep);
@@ -288,10 +287,12 @@ float RODCluster::compare(const Element & a, const Element & b)
     double sum = 0;
     for (int i = 0; i < a.feature.size(); i++)
     {
-        sum += std::pow(a.feature[i] - b.feature[i], 2);
+        //sum += std::pow(a.feature[i] - b.feature[i], 2);
+        sum += a.feature[i] * b.feature[i];
     }
-    sum = std::sqrt(sum);
-    return -std::log(sum + 1);
+    //sum = std::sqrt(sum);
+    //return -std::log(sum + 1);
+    return sum;
 }
 
 }
